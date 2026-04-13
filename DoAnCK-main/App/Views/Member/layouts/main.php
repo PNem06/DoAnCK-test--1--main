@@ -185,7 +185,6 @@ input.addEventListener("keyup", function () {
     clearTimeout(timer);
 
     let keyword = this.value.trim();
-
     if (keyword.length < 2) {
         box.style.display = "none";
         return;
@@ -193,11 +192,13 @@ input.addEventListener("keyup", function () {
 
     timer = setTimeout(() => {
 
-        fetch(`index.php?controller=search&action=ajax&keyword=${encodeURIComponent(keyword)}`)
+        let context = getCurrentContext();
+
+        fetch(`index.php?controller=search&action=ajax&keyword=${encodeURIComponent(keyword)}&context=${context}`)
             .then(res => res.json())
             .then(data => {
 
-                if (data.length === 0) {
+                if (!data.length) {
                     box.innerHTML = "<div style='padding:10px'>Không có kết quả</div>";
                     box.style.display = "block";
                     return;
@@ -207,7 +208,7 @@ input.addEventListener("keyup", function () {
 
                 data.forEach(item => {
                     html += `
-                        <a href="${item.link}" style="display:block; padding:10px; border-bottom:1px solid #eee; text-decoration:none;">
+                        <a href="${item.link}" style="display:block;padding:10px;border-bottom:1px solid #eee;text-decoration:none;">
                             <div><b>${item.title}</b></div>
                             <small>${item.type}</small>
                         </a>
@@ -226,8 +227,18 @@ document.addEventListener("click", function(e){
         box.style.display = "none";
     }
 });
+
 function getCurrentContext() {
-    const params = new URLSearchParams(window.location.search);
-    return params.get('controller') || 'home';
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const controller = urlParams.get("controller");
+
+    // map lại cho chắc chắn
+    switch(controller) {
+        case "actor": return "actor";
+        case "movie": return "movie";
+        case "news": return "news";
+        default: return "home";
+    }
 }
 </script>
