@@ -15,19 +15,34 @@ class SearchController {
 
         $context = $_GET['context'] ?? 'home';
         $keyword = trim($_GET['keyword'] ?? '');
-        $keyword = "%$keyword%";
+
+        if ($keyword === '') {
+            echo json_encode([]);
+            exit;
+        }
 
         $results = [];
 
+        // 🔥 LIKE kiểu autocomplete: prefix + contains
+        $like1 = $keyword . '%';
+        $like2 = '%' . $keyword . '%';
+
+        // ================= ACTOR =================
         if ($context === 'actor') {
 
-    $sql = "SELECT Actor_ID, Actor_Name 
-            FROM tbl_actor 
-            WHERE Actor_Name LIKE ?
-            LIMIT 10";
+            $sql = "SELECT Actor_ID, Actor_Name
+                    FROM tbl_actor
+                    WHERE Actor_Name LIKE ?
+                       OR Actor_Name LIKE ?
+                    ORDER BY 
+                        CASE 
+                            WHEN Actor_Name LIKE ? THEN 1
+                            ELSE 2
+                        END
+                    LIMIT 10";
 
             $stmt = $this->mysqli->prepare($sql);
-            $stmt->bind_param("s", $keyword);
+            $stmt->bind_param("sss", $like1, $like2, $like1);
             $stmt->execute();
             $res = $stmt->get_result();
 
@@ -41,15 +56,21 @@ class SearchController {
         }
 
         // ================= MOVIE =================
-        elseif ($context == 'movie') {
+        elseif ($context === 'movie') {
 
-            $sql = "SELECT Movie_ID, Movie_Title 
-                    FROM tbl_movie 
-                    WHERE Movie_Title LIKE ? 
+            $sql = "SELECT Movie_ID, Movie_Title
+                    FROM tbl_movie
+                    WHERE Movie_Title LIKE ?
+                       OR Movie_Title LIKE ?
+                    ORDER BY 
+                        CASE 
+                            WHEN Movie_Title LIKE ? THEN 1
+                            ELSE 2
+                        END
                     LIMIT 10";
 
             $stmt = $this->mysqli->prepare($sql);
-            $stmt->bind_param("s", $keyword);
+            $stmt->bind_param("sss", $like1, $like2, $like1);
             $stmt->execute();
             $res = $stmt->get_result();
 
@@ -63,15 +84,21 @@ class SearchController {
         }
 
         // ================= NEWS =================
-        elseif ($context == 'news') {
+        elseif ($context === 'news') {
 
-            $sql = "SELECT New_ID, New_Title 
-                    FROM tbl_new 
-                    WHERE New_Title LIKE ? 
+            $sql = "SELECT New_ID, New_Title
+                    FROM tbl_new
+                    WHERE New_Title LIKE ?
+                       OR New_Title LIKE ?
+                    ORDER BY 
+                        CASE 
+                            WHEN New_Title LIKE ? THEN 1
+                            ELSE 2
+                        END
                     LIMIT 10";
 
             $stmt = $this->mysqli->prepare($sql);
-            $stmt->bind_param("s", $keyword);
+            $stmt->bind_param("sss", $like1, $like2, $like1);
             $stmt->execute();
             $res = $stmt->get_result();
 
@@ -87,13 +114,14 @@ class SearchController {
         // ================= DEFAULT =================
         else {
 
-            $sql = "SELECT New_ID, New_Title 
-                    FROM tbl_new 
-                    WHERE New_Title LIKE ? 
+            $sql = "SELECT New_ID, New_Title
+                    FROM tbl_new
+                    WHERE New_Title LIKE ?
+                       OR New_Title LIKE ?
                     LIMIT 5";
 
             $stmt = $this->mysqli->prepare($sql);
-            $stmt->bind_param("s", $keyword);
+            $stmt->bind_param("ss", $like1, $like2);
             $stmt->execute();
             $res = $stmt->get_result();
 

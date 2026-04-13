@@ -23,7 +23,6 @@ $totalNews = isset($GLOBALS['totalNews']) ? $GLOBALS['totalNews'] : (count($news
             </span>
         <?php else: ?>
             <?= $title ?>
-            <span class="badge bg-light text-dark fs-6 ms-4 px-4 py-2 shadow-sm border border-white"><?= count($newsList) ?> tin</span>
         <?php endif; ?>
     </h2>
     
