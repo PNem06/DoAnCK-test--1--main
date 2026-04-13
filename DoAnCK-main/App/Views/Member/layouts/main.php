@@ -97,12 +97,22 @@
             </ul>
 
             <!-- Search Form -->
-            <form class="search-form d-flex me-3" id="searchForm">
-                <input class="form-control me-1" type="search" placeholder="Tìm tin, phim, diễn viên..." 
-                       id="searchInput" name="keyword">
+            <form class="search-form d-flex me-3 position-relative" id="searchForm">
+                <input class="form-control me-1" 
+                    type="search" 
+                    placeholder="Tìm tin, phim, diễn viên..." 
+                    id="searchInput" 
+                    autocomplete="off">
+
                 <button class="btn btn-warning" type="submit">
                     <i class="fas fa-search"></i>
                 </button>
+
+                <!-- 🔥 AJAX RESULT BOX -->
+                <div id="searchResults" 
+                    class="position-absolute bg-white shadow-lg w-100"
+                    style="top:100%; left:0; z-index:9999; display:none;">
+                </div>
             </form>
 
             <!-- User Menu -->
@@ -162,3 +172,58 @@
     </script>
 </body>
 </html>
+<script>
+const input = document.getElementById("searchInput");
+const box = document.getElementById("searchResults");
+
+let timeout = null;
+
+input.addEventListener("keyup", function () {
+    clearTimeout(timeout);
+
+    let keyword = this.value.trim();
+
+    if (keyword.length < 2) {
+        box.style.display = "none";
+        return;
+    }
+
+    timeout = setTimeout(() => {
+        fetch(`index.php?controller=search&action=ajax&keyword=${encodeURIComponent(keyword)}`)
+            .then(res => res.json())
+            .then(data => {
+                renderResults(data);
+            });
+    }, 300);
+});
+
+function renderResults(data) {
+    if (!data.length) {
+        box.innerHTML = `<div class="p-2 text-muted">Không có kết quả</div>`;
+        box.style.display = "block";
+        return;
+    }
+
+    let html = "";
+
+    data.forEach(item => {
+        html += `
+            <a href="${item.link}" class="d-flex p-2 border-bottom text-decoration-none text-dark">
+                <div>
+                    <strong>${item.title}</strong><br>
+                    <small class="text-muted">${item.type}</small>
+                </div>
+            </a>
+        `;
+    });
+
+    box.innerHTML = html;
+    box.style.display = "block";
+}
+
+document.addEventListener("click", function(e){
+    if (!document.getElementById("searchForm").contains(e.target)) {
+        box.style.display = "none";
+    }
+});
+</script>

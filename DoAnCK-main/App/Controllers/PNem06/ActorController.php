@@ -28,14 +28,9 @@ class ActorController {
 }
 
     public function showProfile($actor_id) {
-    // DEBUG ID (xong thì xoá dòng này)
-    // var_dump($actor_id); die();
-
+    
     // ✅ LẤY DATA TỪ MODEL
     $actor = $this->actorModel->getActorById($actor_id);
-
-    // DEBUG thử (nếu cần)
-    // var_dump($actor); die();
 
     // ✅ CHECK
     if (!$actor) {

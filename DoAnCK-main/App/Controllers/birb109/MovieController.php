@@ -34,23 +34,31 @@ class MovieController {
      * 🔥 CHI TIẾT PHIM
      */
     public function showDetail($movie_id) {
-        $movie = $this->getMovieById($movie_id);
-        
-        if (!$movie) {
-            $_SESSION['error'] = 'Phim không tồn tại!';
-            header('Location: index.php?controller=movie');
-            exit;
-        }
-        
-        // Lấy thêm thông tin liên quan
-        $characters = $this->getCharactersByMovie($movie_id);
-        
-        $GLOBALS['movie'] = $movie;
-        $GLOBALS['characters'] = $characters;
-        $GLOBALS['pageTitle'] = $movie['Movie_Title'];
-        
-        include __DIR__ . '/../../Views/member/movie/detail.php';
+    require_once __DIR__ . '/../../Models/birb109/Movie.php';
+    $movieModel = new Movie();
+
+    $movie = $movieModel->getFullDetail($movie_id);
+    $genres = $movieModel->getGenresByMovie($movie_id);
+    $actors = $movieModel->getActorsByMovie($movie_id);
+
+    // 🔥 thêm 2 cái này
+    $directors = $movieModel->getDirectorsByMovie($movie_id);
+    $studios = $movieModel->getStudiosByMovie($movie_id);
+
+    if (!$movie) {
+        $_SESSION['error'] = 'Phim không tồn tại!';
+        header('Location: index.php?controller=movie');
+        exit;
     }
+
+    $GLOBALS['movie'] = $movie;
+    $GLOBALS['genres'] = $genres;
+    $GLOBALS['actors'] = $actors;
+    $GLOBALS['directors'] = $directors; // 🔥 thêm
+    $GLOBALS['studios'] = $studios;     // 🔥 thêm
+
+    include __DIR__ . '/../../Views/member/movie/detail.php';
+}
     
     // ================= PRIVATE METHODS =================
     
