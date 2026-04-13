@@ -72,6 +72,15 @@ try {
                 $ctrl->index($page);
             }
             break;
+        // ================= SEARCH AJAX =================
+        case 'search':
+            require_once 'App/Controllers/TNhu2006/SearchController.php';
+            $ctrl = new SearchController();
+
+            if ($action === 'ajax') {
+                $ctrl->ajax();
+            }
+            break;
 
         // ================= DEFAULT =================
         default:

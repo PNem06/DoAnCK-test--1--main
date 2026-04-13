@@ -98,20 +98,18 @@
 
             <!-- Search Form -->
             <form class="search-form d-flex me-3 position-relative" id="searchForm">
-                <input class="form-control me-1" 
-                    type="search" 
-                    placeholder="Tìm tin, phim, diễn viên..." 
-                    id="searchInput" 
+                <input class="form-control me-1"
+                    type="search"
+                    id="searchInput"
+                    placeholder="Tìm phim, tin, diễn viên..."
                     autocomplete="off">
 
                 <button class="btn btn-warning" type="submit">
                     <i class="fas fa-search"></i>
                 </button>
 
-                <!-- 🔥 AJAX RESULT BOX -->
-                <div id="searchResults" 
-                    class="position-absolute bg-white shadow-lg w-100"
-                    style="top:100%; left:0; z-index:9999; display:none;">
+                <div id="searchBox"
+                    style="position:absolute; top:100%; left:0; right:0; background:white; z-index:9999; display:none; border-radius:10px;">
                 </div>
             </form>
 
@@ -166,7 +164,11 @@
             e.preventDefault();
             let keyword = $('#searchInput').val();
             if (keyword) {
-                window.location.href = `index.php?controller=home&action=search&keyword=${encodeURIComponent(keyword)}`;
+                fetch(`/DoAnCK-main/index.php?controller=search&action=ajax&keyword=${encodeURIComponent(keyword)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Handle the search results
+                    });
             }
         });
     </script>
@@ -174,12 +176,13 @@
 </html>
 <script>
 const input = document.getElementById("searchInput");
-const box = document.getElementById("searchResults");
+const box = document.getElementById("searchBox");
 
-let timeout = null;
+let timer = null;
 
 input.addEventListener("keyup", function () {
-    clearTimeout(timeout);
+
+    clearTimeout(timer);
 
     let keyword = this.value.trim();
 
@@ -188,42 +191,43 @@ input.addEventListener("keyup", function () {
         return;
     }
 
-    timeout = setTimeout(() => {
+    timer = setTimeout(() => {
+
         fetch(`index.php?controller=search&action=ajax&keyword=${encodeURIComponent(keyword)}`)
             .then(res => res.json())
             .then(data => {
-                renderResults(data);
+
+                if (data.length === 0) {
+                    box.innerHTML = "<div style='padding:10px'>Không có kết quả</div>";
+                    box.style.display = "block";
+                    return;
+                }
+
+                let html = "";
+
+                data.forEach(item => {
+                    html += `
+                        <a href="${item.link}" style="display:block; padding:10px; border-bottom:1px solid #eee; text-decoration:none;">
+                            <div><b>${item.title}</b></div>
+                            <small>${item.type}</small>
+                        </a>
+                    `;
+                });
+
+                box.innerHTML = html;
+                box.style.display = "block";
             });
+
     }, 300);
 });
-
-function renderResults(data) {
-    if (!data.length) {
-        box.innerHTML = `<div class="p-2 text-muted">Không có kết quả</div>`;
-        box.style.display = "block";
-        return;
-    }
-
-    let html = "";
-
-    data.forEach(item => {
-        html += `
-            <a href="${item.link}" class="d-flex p-2 border-bottom text-decoration-none text-dark">
-                <div>
-                    <strong>${item.title}</strong><br>
-                    <small class="text-muted">${item.type}</small>
-                </div>
-            </a>
-        `;
-    });
-
-    box.innerHTML = html;
-    box.style.display = "block";
-}
 
 document.addEventListener("click", function(e){
     if (!document.getElementById("searchForm").contains(e.target)) {
         box.style.display = "none";
     }
 });
+function getCurrentContext() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('controller') || 'home';
+}
 </script>
